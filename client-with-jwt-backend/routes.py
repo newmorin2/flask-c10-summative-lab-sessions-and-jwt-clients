@@ -160,3 +160,76 @@ def get_notes():
         "pages": notes.pages,
         "total": notes.total
     }), 200
+
+@jwt_required()
+def get_note(id):
+
+    user_id = get_jwt_identity()
+    note = Note.query.filter_by(
+        id=id,
+        user_id=user_id
+    ).first()
+
+    if not note:
+        return jsonify({
+            "error": "Note not found"
+        }), 404
+
+    return jsonify({
+        "id": note.id,
+        "title": note.title,
+        "content": note.content
+    }), 200
+
+@jwt_required()
+def update_note(id):
+
+    user_id = get_jwt_identity()
+    note = Note.query.filter_by(
+        id=id,
+        user_id=user_id
+    ).first()
+
+    if not note:
+        return jsonify({
+            "error": "Note not found"
+        }), 404
+
+    data = request.get_json()
+    if "title" in data:
+        note.title = data["title"]
+
+    if "content" in data:
+        note.content = data["content"]
+
+    db.session.commit()
+
+    return jsonify({
+        "message": "Note updated",
+        "note": {
+            "id": note.id,
+            "title": note.title,
+            "content": note.content
+        }
+    }), 200
+
+@jwt_required()
+def delete_note(id):
+
+    user_id = get_jwt_identity()
+    note = Note.query.filter_by(
+        id=id,
+        user_id=user_id
+    ).first()
+
+    if not note:
+        return jsonify({
+            "error": "Note not found"
+        }), 404
+
+    db.session.delete(note)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Note deleted"
+    }), 200

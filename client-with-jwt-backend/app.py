@@ -2,7 +2,7 @@ from flask import Flask
 from config import Config
 from extensions import db, migrate, bcrypt, jwt
 import models
-from routes import signup, login, create_note, get_notes
+from routes import signup, login, create_note, get_notes ,get_note, update_note, delete_note
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -32,6 +32,22 @@ app.add_url_rule(
     view_func=get_notes,
     methods=["GET"]
 )
+app.add_url_rule(
+    "/notes/<int:id>",
+    view_func=get_note,
+    methods=["GET"]
+)
+app.add_url_rule(
+    "/notes/<int:id>",
+    view_func=update_note,
+    methods=["PATCH"]
+)
+app.add_url_rule(
+    "/notes/<int:id>",
+    view_func=delete_note,
+    methods=["DELETE"]
+)
+
 
 @app.route("/")
 def home():
