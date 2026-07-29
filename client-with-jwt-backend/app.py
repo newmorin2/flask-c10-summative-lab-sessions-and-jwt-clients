@@ -1,6 +1,7 @@
 from flask import Flask
 from config import Config
 from extensions import db, migrate, bcrypt, jwt
+import models
 
 app = Flask(__name__)
 app.config.from_object(Config)
