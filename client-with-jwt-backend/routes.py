@@ -1,7 +1,7 @@
 from flask import request, jsonify
 from extensions import db, bcrypt
-from models import User
-from flask_jwt_extended import create_access_token
+from models import User, Note
+from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
 
 def signup():
 
@@ -44,7 +44,7 @@ def signup():
     db.session.add(user)
     db.session.commit()
     token = create_access_token(
-        identity=user.id
+        identity=str(user.id)
     )
 
     return jsonify({
@@ -84,7 +84,7 @@ def login():
             ]
         }), 401
     token = create_access_token(
-        identity=user.id
+        identity=str(user.id)
     )
 
     return jsonify({
@@ -93,4 +93,70 @@ def login():
             "id": user.id,
             "username": user.username
         }
+    }), 200
+
+@jwt_required()
+def create_note():
+
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    title = data.get("title")
+    content = data.get("content")
+
+    if not title or not content:
+        return jsonify({
+            "error": "Title and content are required"
+        }), 400
+
+    note = Note(
+        title=title,
+        content=content,
+        user_id=user_id
+    )
+    db.session.add(note)
+    db.session.commit()
+
+    return jsonify({
+        "message": "Note created",
+        "note": {
+            "id": note.id,
+            "title": note.title,
+            "content": note.content
+        }
+    }), 201
+
+
+@jwt_required()
+def get_notes():
+
+    user_id = get_jwt_identity()
+    page = request.args.get(
+        "page",
+        1,
+        type=int
+    )
+    per_page = request.args.get(
+        "per_page",
+        5,
+        type=int
+    )
+    notes = Note.query.filter_by(
+        user_id=user_id
+    ).paginate(
+        page=page,
+        per_page=per_page
+    )
+
+    return jsonify({
+        "notes": [
+            {
+                "id": note.id,
+                "title": note.title,
+                "content": note.content
+            }
+            for note in notes.items
+        ],
+        "page": notes.page,
+        "pages": notes.pages,
+        "total": notes.total
     }), 200
