@@ -2,7 +2,7 @@ from flask import Flask
 from config import Config
 from extensions import db, migrate, bcrypt, jwt
 import models
-from routes import signup, login, create_note, get_notes ,get_note, update_note, delete_note
+from routes import signup, login, me, create_note, get_notes ,get_note, update_note, delete_note
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -21,6 +21,11 @@ app.add_url_rule(
     "/login",
     view_func=login,
     methods=["POST"]
+)
+app.add_url_rule(
+    "/me",
+    view_func=me,
+    methods=["GET"]
 )
 app.add_url_rule(
     "/notes",
